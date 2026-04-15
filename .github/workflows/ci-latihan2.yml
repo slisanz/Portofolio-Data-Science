@@ -1,9 +1,19 @@
-name: CI
+name: CI latihan2
 
 on:
   push:
     branches: [main]
+    paths:
+      - "latihan2/**"
+      - ".github/workflows/ci-latihan2.yml"
   pull_request:
+    paths:
+      - "latihan2/**"
+      - ".github/workflows/ci-latihan2.yml"
+
+defaults:
+  run:
+    working-directory: latihan2
 
 jobs:
   lint-test:
@@ -14,6 +24,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: latihan2/src/serve/requirements-serve.txt
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
@@ -24,7 +35,7 @@ jobs:
       - name: Pytest (lightweight)
         run: pytest tests/test_evaluator.py -q
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}/latihan2
 
   docker-build:
     runs-on: ubuntu-latest
@@ -32,4 +43,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build image
+        working-directory: latihan2
         run: docker build -f src/serve/Dockerfile -t movielens-recsys-api:ci .
