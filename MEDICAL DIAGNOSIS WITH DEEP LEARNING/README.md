@@ -12,10 +12,8 @@ End-to-end deep learning pipeline for pediatric chest X-ray pneumonia screening,
 ## Table of contents
 
 - [Highlights](#highlights)
-- [Live demo](#live-demo)
 - [Demo screenshots](#demo-screenshots)
 - [Results](#results)
-- [Architecture](#architecture)
 - [Project structure](#project-structure)
 - [Dataset](#dataset)
 - [How to run](#how-to-run)
@@ -25,7 +23,6 @@ End-to-end deep learning pipeline for pediatric chest X-ray pneumonia screening,
 - [Roadmap](#roadmap)
 - [Disclaimer](#disclaimer)
 - [Citation](#citation)
-- [License](#license)
 - [Author](#author)
 
 ---
@@ -40,18 +37,6 @@ End-to-end deep learning pipeline for pediatric chest X-ray pneumonia screening,
 - **Class imbalance** (PNEUMONIA roughly 2.9 times NORMAL in train) handled with class weights in the loss rather than oversampling.
 - **Multi-page Streamlit interface**: live predictor with Grad-CAM, dataset and EDA dashboard, model performance dashboard, and a project information page.
 - **Reproducible**, with pinned dependencies, fixed random seeds, and a numbered notebook sequence.
-
----
-
-## Live demo
-
-If you have deployed this project to Streamlit Community Cloud, paste the URL here:
-
-```
-https://<your-app>.streamlit.app
-```
-
-For a local run, see [How to run](#how-to-run).
 
 ---
 
@@ -94,31 +79,6 @@ Numbers below are produced by `notebooks/05_evaluation_gradcam.ipynb` and persis
 Average precision (DenseNet121): 0.940. Confusion matrix at the tuned threshold: 121 TN, 113 FP, 19 FN, 371 TP — 19 missed pneumonias against 113 false alarms is an acceptable trade-off in a screening setting where false negatives carry the larger cost. The baseline collapses to predicting PNEUMONIA on essentially every image (recall 1.0, precision at base rate, AUC near chance), which makes the value added by transfer learning visible in the AUC gap (0.585 vs 0.909).
 
 Recall on PNEUMONIA is the headline number because in a screening context a missed positive is worse than a false alarm. ROC, precision-recall, threshold sweep, confusion matrix, and Grad-CAM galleries are all saved to `reports/figures/` and surfaced in the Streamlit Performance page.
-
----
-
-## Architecture
-
-```
-+---------------------+      +----------------------+      +----------------------+
-|  Jupyter notebooks  | ---> |   Saved artefacts    | ---> |   Streamlit app      |
-|  (analysis + train) |      |  (model + metadata)  |      |   (inference + UI)   |
-+---------------------+      +----------------------+      +----------------------+
-   01_eda.ipynb                models/best_model.keras       app.py        (Predict)
-   02_preprocessing.ipynb      models/threshold.json         pages/1_Dataset_EDA.py
-   03_baseline_cnn.ipynb       models/class_indices.json     pages/2_Model_Performance.py
-   04_transfer_learning.ipynb  reports/metrics.json          pages/3_About.py
-   05_evaluation_gradcam.ipynb reports/figures/*.png
-```
-
-Pipeline summary:
-
-1. **EDA** to understand class balance, image dimensions, intensity distributions, and the bacterial / viral subdivision inside PNEUMONIA.
-2. **Preprocessing** in `src/data_loader.py` builds a `tf.data` pipeline: resize to 224x224, grayscale to 3 channels, DenseNet preprocessing, mild train-only augmentation, and class weights.
-3. **Modelling.** Baseline CNN as a reference, then DenseNet121 transfer learning (frozen feature extraction, then fine-tuning the top 30 layers at lr = 1e-5).
-4. **Evaluation** computes ROC, PR, confusion matrix, classification report, and tunes the decision threshold for high recall.
-5. **Explainability** via Grad-CAM on `conv5_block16_concat`.
-6. **Streamlit app** loads the saved model and threshold, runs inference on uploaded X-rays, and surfaces all of the above.
 
 ---
 
@@ -182,8 +142,8 @@ The original `val/` folder only contains 16 images (8 per class), which is too f
 ### 1. Clone and create the environment
 
 ```bash
-git clone <your-repo-url>
-cd "Medical diagnosis with deep lerning"
+git clone https://github.com/slisanz/Portofolio-Data-Science.git
+cd "Portofolio-Data-Science/MEDICAL DIAGNOSIS WITH DEEP LEARNING"
 
 python -m venv .venv
 .venv\Scripts\activate          # Windows
@@ -309,12 +269,7 @@ If you use this code or refer to this project, please cite the underlying datase
 
 ---
 
-## License
-
-MIT. See `LICENSE` for details.
-
----
-
 ## Author
 
-Built as a data science portfolio project. Replace this section with your own name, GitHub, and contact link.
+Built as a data science portfolio project. 
+RUSLI SANJAYA.
