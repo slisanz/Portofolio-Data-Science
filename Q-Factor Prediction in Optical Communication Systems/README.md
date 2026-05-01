@@ -1,6 +1,6 @@
 # Q-Factor Prediction in Optical Communication Systems
 
-> **From OSNR to Optical Signal Quality** — a physics-aware, uncertainty-calibrated machine-learning pipeline featuring FT-Transformer, Physics-Informed Neural Networks, and Split Conformal Prediction.
+> **Tagline**: Data engineering (pandas) + 8 model klasik (4 linear + 4 tree) + 3 arsitektur DL (MLP, FT-Transformer, PINN) + uncertainty quantification (MC-Dropout & Split Conformal) + stacking ensemble + Optuna tuning + MLflow tracking + SHAP explainability + dashboard Streamlit (5 halaman).
 
 [![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/streamlit-app-red.svg)](https://streamlit.io/)
@@ -10,21 +10,46 @@
 
 ## Overview
 
-Predict the receiver-side **Q-Factor** (signal quality, in dB) of an optical communication link from five normalized physical-layer parameters: `OSNR`, `Launch Power`, `Fiber Length`, `Dispersion`, and `Nonlinear Effect`.
+### Why optical communication, and what is the Q-Factor?
 
-The project benchmarks classical, gradient-boosted, and deep tabular models against a physics-informed neural network, exposes uncertainty via MC-Dropout and Split Conformal Prediction, and ships an interactive Streamlit application.
+Optical fiber networks carry virtually all long-distance internet, mobile, and data-center traffic. Information is encoded as pulses of light that travel through hundreds of kilometers of glass — and along the way, that light degrades. Optical amplifiers add noise, the fiber's nonlinear response distorts the waveform, chromatic dispersion smears the pulses in time, and every additional kilometer compounds the impairments.
 
-### Key Features
+Engineers summarize end-to-end signal quality with a single number: the **Q-Factor (dB)**. It maps directly to the link's Bit Error Rate (BER) — a higher Q means cleaner reception, fewer retransmissions, and a link that actually delivers the bit-rate it was designed for. A Q-Factor of roughly 6 dB or above is typically the operational threshold. Being able to **predict Q-Factor from the link's physical parameters before deployment** saves expensive trial-and-error during network planning, and helps operators size budgets for amplifiers, dispersion compensation, and span lengths.
 
-- **End-to-end pipeline** — EDA, feature engineering, modeling, evaluation, deployment.
-- **Seven model families** — Linear baselines, Random Forest, XGBoost, LightGBM, CatBoost, MLP, FT-Transformer, PINN, and a Stacking ensemble.
-- **Physics-Informed Neural Network** that softly anchors the OSNR-to-Q relation derived from optical communications theory.
-- **Calibrated uncertainty** with MC-Dropout (epistemic) and Split Conformal Prediction (distribution-free 95% intervals).
-- **Hyperparameter optimization** via Optuna with TPE sampler and median pruner.
-- **Experiment tracking** with MLflow (local file backend, zero infrastructure).
-- **Explainability** — SHAP TreeExplainer, partial-dependence and permutation importance.
-- **Streamlit application** (multi-page) — predictor with confidence bands, what-if analysis, model comparison, and explainability views.
-- **Reproducibility** — pinned dependencies, deterministic seeds, pytest test suite.
+This project builds an end-to-end machine-learning pipeline that does exactly that — and crucially, returns a **calibrated confidence interval** alongside every prediction, so downstream engineers know how much to trust the number.
+
+### The dataset
+
+| Property | Value |
+|---|---|
+| Source | [Mendeley Data — DOI 10.17632/6fcnwdjxt5.1](https://data.mendeley.com/datasets/6fcnwdjxt5/1) (CC BY 4.0) |
+| Authors | Al-Dulaimi, A.; Abdulla, E. N. (2025) |
+| Rows | 1,000,000 synthetic transmission scenarios |
+| Features | 5 (all normalized to `[0, 1]`, no missing values) |
+| Target | `Q_Factor` — continuous, in dB, roughly `[2, 9]` |
+
+The five input features each correspond to a real physical-layer quantity that an optical engineer would actually measure or specify when designing a link:
+
+| Feature | Physical meaning |
+|---|---|
+| `OSNR` | Optical Signal-to-Noise Ratio — the dominant driver of Q-Factor |
+| `Launch_Power` | Power launched into the fiber. Too low → poor SNR; too high → triggers Kerr nonlinearity |
+| `Fiber_Length` | Total span length. Longer links accumulate more attenuation and dispersion |
+| `Dispersion` | Chromatic dispersion — pulse broadening that causes inter-symbol interference |
+| `Nonlinear_Effect` | Aggregate Kerr-induced impairments (SPM, XPM, FWM) |
+
+### What this project actually delivers
+
+A model that returns *only a number* is not useful for operations — engineers also need to know how confident the model is, why it predicted what it did, and whether it would generalize beyond the operating points it has seen. This pipeline therefore combines:
+
+- **Strong classical baselines** — 4 linear models (Ridge / Lasso / ElasticNet / BayesianRidge) and 4 tree ensembles (Random Forest, XGBoost, LightGBM, CatBoost), all benchmarked under 5-fold cross-validation and tuned with Optuna (TPE sampler + median pruner).
+- **Deep tabular models** — an MLP and an **FT-Transformer**, the SOTA architecture for tabular data (Gorishniy et al., NeurIPS 2021), with a token-per-feature embedding and a Transformer encoder.
+- **Physics-Informed Neural Network (PINN)** — the loss function is regularized by the OSNR↔Q theoretical relation derived from optical communications theory, so the network is *not allowed* to violate physics in regions where data is sparse.
+- **Calibrated uncertainty** — every prediction ships with a **95% Split Conformal Prediction interval** (distribution-free, finite-sample coverage guarantee) and an **MC-Dropout** epistemic standard deviation.
+- **Stacking ensemble** — a Ridge meta-learner blends the strongest base models for the final prediction.
+- **Explainability** — SHAP TreeExplainer, partial-dependence plots, and permutation importance, quantifying which physical parameter the model actually leans on.
+- **Interactive Streamlit dashboard (5 pages)** — predictor with confidence bands, single-parameter what-if sweeps, model comparison, and explainability views (screenshots in the [Dashboard Preview](#dashboard-preview) section below).
+- **Reproducibility** — pinned dependencies, deterministic seeds, MLflow experiment tracking, and a pytest test suite.
 
 ---
 
