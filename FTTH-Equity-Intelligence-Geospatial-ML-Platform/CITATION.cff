@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: "FTTH Equity Intelligence: a geospatial ML platform for fibre rollout in Troyes Champagne Métropole"
+message: "If you use this work, please cite it as below."
+type: software
+authors:
+  - family-names: "TBD"
+    given-names: "TBD"
+repository-code: "https://github.com/TBD/FTTH-Equity-Intelligence-Geospatial-ML-Platform"
+license: MIT
+date-released: 2026-05-05
+keywords:
+  - FTTH
+  - broadband
+  - digital divide
+  - geospatial
+  - machine learning
+  - France
+references:
+  - type: data
+    title: "The fixed broadband and very high-speed market (deployments) at the scale of the buildings of Troyes Champagne Métropole"
+    authors:
+      - name: "Arcep"
+    url: "https://data.europa.eu/data/datasets/66cc737273555682b1e9b051?locale=en"

@@ -1,0 +1,53 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# venv
+.venv/
+venv/
+env/
+
+# data
+data/raw/*
+data/interim/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# models
+models/*
+!models/.gitkeep
+
+# reports artifacts
+reports/figures/*
+!reports/figures/.gitkeep
+
+# local notes
+NOTES.md
+notes/
+scratch/
+TODO.local.md
+
+# os
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# secrets
+.env
+.env.local
+*.pem
