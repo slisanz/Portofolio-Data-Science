@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.components.loaders import load_transactions, warn_if_missing
-from app.components.theme import inject_sidebar_style
+from app.components.theme import PALETTE, apply_plotly_layout, inject_sidebar_style
 from src import config
 
 inject_sidebar_style()
@@ -35,9 +35,8 @@ agg = df.groupby("Branch").agg(
 agg["City"] = agg.index.map(config.CITY_BY_BRANCH)
 st.dataframe(agg, use_container_width=True)
 
-PALETTE = ["#2f5d62", "#7d9b76", "#c9a86a", "#b08968"]
 fig = px.bar(agg.reset_index(), x="Branch", y="Revenue", color="City", text_auto=".2s", color_discrete_sequence=PALETTE)
-fig.update_layout(plot_bgcolor="#f7f3ec", paper_bgcolor="#f7f3ec")
+apply_plotly_layout(fig)
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Revenue difference test")
@@ -53,5 +52,5 @@ else:
 
 st.subheader("Rating distribution")
 fig2 = px.box(df, x="Branch", y="Rating", color="Branch", color_discrete_sequence=PALETTE)
-fig2.update_layout(plot_bgcolor="#f7f3ec", paper_bgcolor="#f7f3ec")
+apply_plotly_layout(fig2)
 st.plotly_chart(fig2, use_container_width=True)

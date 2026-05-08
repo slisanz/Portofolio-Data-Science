@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.components.loaders import load_transactions, warn_if_missing
-from app.components.theme import inject_sidebar_style
+from app.components.theme import PALETTE, apply_plotly_layout, inject_sidebar_style
 from src import config
 
 inject_sidebar_style()
@@ -74,9 +74,10 @@ c3.metric(
 )
 
 fig = go.Figure()
-fig.add_bar(x=combo["Month"], y=combo["Baseline"], name="Baseline", marker_color="#b08968")
-fig.add_bar(x=combo["Month"], y=combo["Projected"], name="Projected", marker_color="#2f5d62")
-fig.update_layout(barmode="group", yaxis_title="Revenue (USD)", plot_bgcolor="#f7f3ec", paper_bgcolor="#f7f3ec")
+fig.add_bar(x=combo["Month"], y=combo["Baseline"], name="Baseline", marker_color=PALETTE[2])
+fig.add_bar(x=combo["Month"], y=combo["Projected"], name="Projected", marker_color=PALETTE[0])
+fig.update_layout(barmode="group", yaxis_title="Revenue (USD)")
+apply_plotly_layout(fig)
 st.plotly_chart(fig, use_container_width=True)
 
 st.caption(

@@ -11,7 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.components.loaders import load_segment_profiles, load_segments, warn_if_missing
-from app.components.theme import inject_sidebar_style
+from app.components.theme import PALETTE, apply_plotly_layout, inject_sidebar_style
 from src import config
 
 inject_sidebar_style()
@@ -29,7 +29,6 @@ profile = load_segment_profiles().reset_index()
 st.subheader("Segment profile")
 st.dataframe(profile, use_container_width=True)
 
-PALETTE = ["#2f5d62", "#7d9b76", "#c9a86a", "#b08968", "#5b7e91", "#3a6e5f"]
 fig = px.scatter(
     seg,
     x="Recency",
@@ -39,7 +38,7 @@ fig = px.scatter(
     labels={"color": "Segment"},
     color_discrete_sequence=PALETTE,
 )
-fig.update_layout(plot_bgcolor="#f7f3ec", paper_bgcolor="#f7f3ec")
+apply_plotly_layout(fig)
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Download segment assignments")

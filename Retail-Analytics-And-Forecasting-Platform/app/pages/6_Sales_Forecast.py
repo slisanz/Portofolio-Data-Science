@@ -17,7 +17,7 @@ from app.components.loaders import (
     load_transactions,
     warn_if_missing,
 )
-from app.components.theme import inject_sidebar_style
+from app.components.theme import PALETTE, apply_plotly_layout, inject_sidebar_style
 from src import config
 
 inject_sidebar_style()
@@ -43,11 +43,12 @@ sub = sub[sub["ds"] <= last_actual + pd.Timedelta(days=horizon)]
 obs = df[df["Branch"] == branch].groupby("Date")["Total"].sum().reset_index()
 
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=obs["Date"], y=obs["Total"], mode="markers", name="actual", marker=dict(color="#1f2937", size=6)))
-fig.add_trace(go.Scatter(x=sub["ds"], y=sub["yhat"], mode="lines", name="forecast", line=dict(color="#2f5d62", width=2)))
+fig.add_trace(go.Scatter(x=obs["Date"], y=obs["Total"], mode="markers", name="actual", marker=dict(color=PALETTE[5], size=6)))
+fig.add_trace(go.Scatter(x=sub["ds"], y=sub["yhat"], mode="lines", name="forecast", line=dict(color=PALETTE[0], width=2)))
 fig.add_trace(go.Scatter(x=sub["ds"], y=sub["yhat_upper"], mode="lines", line=dict(width=0), showlegend=False))
-fig.add_trace(go.Scatter(x=sub["ds"], y=sub["yhat_lower"], mode="lines", fill="tonexty", fillcolor="rgba(125,155,118,0.25)", line=dict(width=0), name="confidence"))
-fig.update_layout(xaxis_title="Date", yaxis_title="Revenue (USD)", plot_bgcolor="#f7f3ec", paper_bgcolor="#f7f3ec")
+fig.add_trace(go.Scatter(x=sub["ds"], y=sub["yhat_lower"], mode="lines", fill="tonexty", fillcolor="rgba(46,134,171,0.25)", line=dict(width=0), name="confidence"))
+fig.update_layout(xaxis_title="Date", yaxis_title="Revenue (USD)")
+apply_plotly_layout(fig)
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Cross validation metrics")
