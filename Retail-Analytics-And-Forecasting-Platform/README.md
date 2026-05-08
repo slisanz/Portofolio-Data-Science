@@ -2,6 +2,12 @@
 
 > From 1003 noisy supermarket transactions to a six page interactive dashboard that forecasts daily revenue per branch, predicts customer ratings with on the spot explanations, and lets a manager test pricing and promotion scenarios in real time.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://portofolio-data-science-ryv2ypqwsuzkc7jwnc2ot4.streamlit.app/)
+
+**Try it now**: https://portofolio-data-science-ryv2ypqwsuzkc7jwnc2ot4.streamlit.app/
+
+Open the live app and use the sidebar to walk through the six pages. The Rating Predictor and What If Simulator are the most interactive entry points; the rest summarise the supporting analysis.
+
 Multi branch retail analytics on a Kaggle supermarket dataset spanning three branches in Myanmar (Yangon, Mandalay, Naypyitaw). The project starts at the raw CSV, applies a documented per column cleaning policy, runs segmentation, forecasting, rating regression, and market basket mining, and lands the results in a Streamlit dashboard the business can actually use.
 
 ## Results At A Glance
