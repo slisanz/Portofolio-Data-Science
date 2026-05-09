@@ -142,6 +142,104 @@ jupyter lab
 - No socioeconomic overlay yet. Joining INSEE filosofi income deciles per IRIS would turn the equity index from *infrastructural* to *outcome*-oriented.
 - The causal notebook (09) is observational; do not interpret the uplift estimates as policy-grade.
 
+## Problem to insight
+
+Read this section if you only have two minutes. It is the short version of what
+the project asks, how it answers, and what it found.
+
+### The problem
+
+France is mid-rollout on fibre-to-the-home. Arcep, the French telecom
+regulator, publishes a quarterly building-level snapshot of every fibre
+deployment, and the public picture is usually compressed into one national
+headline ("x percent of households can subscribe to fibre"). That number
+hides two questions that matter at the metropolitan level:
+
+1. Is the rollout *equitable* across communes inside a single metro, or are
+   some neighbourhoods systematically further along than others?
+2. At the building level, can we tell *which addresses* are most likely to
+   still be incomplete, so an operator or a local authority could prioritise
+   the last-mile work that actually unlocks subscriptions?
+
+Both questions are uncomfortable to answer in aggregate because the data is
+messy (cp1252 mojibake, ambiguous CRS, mostly-null completion dates) and the
+target itself is not obvious: the PM-level state is essentially uniform in
+this snapshot, so the real variance lives at the building level.
+
+### Problem statement
+
+> Given the Arcep building-level snapshot for Troyes Champagne Métropole, (a)
+> measure how equitable the FTTH rollout is across the 81 communes of the
+> intercommunal body, and (b) build a calibrated classifier that flags
+> individual buildings most likely to still be incomplete, so the output can
+> be used as a triage list. The pipeline must be honest about leakage,
+> reproducible across reruns, and usable by a non-technical reader.
+
+### How the project tackles it
+
+1. **Build a clean, honest dataset.** A typed cleaning pipeline pins the
+   `cp1252` encoding, validates the schema with pandera, and detects the CRS
+   from value range so downstream code does not silently see mojibake or
+   read projected coordinates as WGS-84.
+2. **Pivot the target to where the variance lives.** EDA showed that 99.99%
+   of PMs in this snapshot are already deployed; the lag signal sits at the
+   *building* state. The target was repointed to `imb_etat != 'deploye'` and
+   the rest of the pipeline updated to match.
+3. **Define a composite equity index.** Three sub-indicators (coverage,
+   pm_load, coll_lag), each in [0, 1], rank-percentile normalised where the
+   raw distribution is heavy-tailed. Two more dimensions (recency, operator
+   competition) were considered and dropped because they collapse to
+   constants on this snapshot; carrying zero-variance weights would have
+   diluted the signal.
+4. **Train a calibrated, group-aware classifier.** LightGBM wrapped in
+   `CalibratedClassifierCV` with isotonic regression so `predict_proba` reads
+   as a frequency. Cross-validation uses GroupKFold on `code_insee` so the CV
+   score reflects how well the model generalises to a *new commune*, not how
+   well it interpolates within one it has already seen. A unit test in
+   `tests/test_features.py` fails if any aggregate of the target sneaks into
+   the feature set.
+5. **Wrap it in a dashboard a non-technical reader can drive.** Five
+   Streamlit pages, ordered so the interactive ones (Map Explorer,
+   Deployment Predictor) come first. The dashboard is deployed live, so a
+   reviewer can use it without installing anything.
+
+### What the data actually says
+
+- **The metro is not flat.** Across 81 communes, the building-level lag rate
+  ranges from 0% to 24%; the headline 5.65% average hides communes where
+  every fourth address is still not connected.
+- **Most predictive power is local, not generalisable.** Random-holdout AUC
+  sits at 0.91, but the group-aware CV AUC (folds split by commune) is 0.74.
+  That gap of 17 points is the part of the model that does not transfer to a
+  commune it has never seen; it is honest evidence that latent commune-level
+  factors (operator, terrain, planning order) drive much of the signal.
+- **Calibration is reliable.** Brier 0.036, isotonic-calibrated. A predicted
+  P(lagging) of 0.30 means roughly 30% of similar buildings actually lag, so
+  the score is usable as a triage probability rather than a black-box rank.
+- **Collective dwellings are the squeaky wheel.** Multi-dwelling buildings
+  lag 2 to 3 times more than detached homes inside the same commune, which
+  is why the equity index splits out a `coll_lag` sub-indicator instead of
+  rolling everything into one coverage number.
+- **Equity index range 0.66 to 0.99.** Even within a single intercommunal
+  body, infrastructural equity spans roughly a third of the scale.
+- **Some questions are honestly unanswerable here.** `date_completude` is
+  100% null so rollout *speed* cannot be measured; the French RIP model
+  assigns single infrastructure operators per zone (HHI = 1 everywhere) so
+  per-commune competition analysis collapses. The methodology page is
+  explicit about both, instead of papering over them.
+
+### What a user could do with this output
+
+- **An operator or a local authority** can sort buildings by predicted
+  P(lagging), weight by population density or by collective-vs-detached
+  category, and use the top decile as an outreach list for the next quarter.
+- **A regulator or a policy reviewer** can read the equity index across
+  communes; the bottom decile is a candidate list for follow-up audits or
+  targeted funding.
+- **A researcher** gets a reference template for taking a national open-data
+  drop, deciding where the variance actually lives, and shipping something
+  useful from a single quarterly snapshot without overclaiming.
+
 ## License
 
 MIT, see `LICENSE`.
