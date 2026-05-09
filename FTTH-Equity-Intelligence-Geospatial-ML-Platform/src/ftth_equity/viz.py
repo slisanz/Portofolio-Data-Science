@@ -2,6 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 
+PRIMARY = "#2E86AB"
+BG = "#0E1117"
+PANEL = "#1E2530"
+TEXT = "#FAFAFA"
+LAGGING = "#E63946"
+DEPLOYED = "#2E86AB"
+
 
 def folium_points(df: pd.DataFrame, sample: int = 5000):
     import folium
@@ -13,9 +20,9 @@ def folium_points(df: pd.DataFrame, sample: int = 5000):
         folium.CircleMarker(
             [r["lat"], r["lon"]],
             radius=2,
-            color="#cb4154" if r.get("is_lagging", 0) else "#2a9d8f",
+            color=LAGGING if r.get("is_lagging", 0) else DEPLOYED,
             fill=True,
-            fill_opacity=0.6,
+            fill_opacity=0.7,
             weight=0,
         ).add_to(m)
     return m
@@ -58,6 +65,13 @@ def commune_bar(equity_df: pd.DataFrame, top: int = 20):
         orientation="h",
         hover_data=["coverage", "pm_load", "coll_lag", "n_buildings"],
         title=f"Bottom {top} communes by equity index",
+        color_discrete_sequence=[PRIMARY],
     )
-    fig.update_layout(yaxis=dict(autorange="reversed"))
+    fig.update_layout(
+        yaxis=dict(autorange="reversed"),
+        template="plotly_dark",
+        paper_bgcolor=BG,
+        plot_bgcolor=BG,
+        font=dict(color=TEXT),
+    )
     return fig

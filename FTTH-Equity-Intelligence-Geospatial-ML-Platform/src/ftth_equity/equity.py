@@ -1,7 +1,7 @@
 """Composite equity index at the commune level.
 
 The Troyes snapshot collapses two of the four sub-indicators we initially
-considered into constants — `pm_etat` is essentially uniform (everything is
+considered into constants. `pm_etat` is essentially uniform (everything is
 deployed at PM level) and `code_l331` is single-operator per RIP zone, so
 HHI = 1 everywhere. We dropped both rather than carry dead weight.
 
@@ -14,7 +14,7 @@ What remains varies meaningfully across communes:
 `coverage` is the headline number any reader will look at. `pm_load` partly
 proxies ruralness (rural communes carry fewer buildings per PM) but also reads
 as "how concentrated is service per access point". `coll_lag` captures whether
-the commune is leaving its multi-dwelling buildings behind — collectives lag
+the commune is leaving its multi-dwelling buildings behind. Collectives lag
 2-3x more than detached homes in this dataset, so a separate sub-indicator
 makes sense.
 

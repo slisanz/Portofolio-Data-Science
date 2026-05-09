@@ -19,7 +19,7 @@ specifically the building-level resource for Troyes Champagne Métropole
 - Empty strings are converted to NA before any string operation.
 - `code_poste` is normalised to a 5-character zero-padded string.
 - Coordinates outside metropolitan-France bounds are dropped.
-- The target `is_lagging` is `True` when `imb_etat != 'deploye'` — the
+- The target `is_lagging` is `True` when `imb_etat != 'deploye'`, i.e. the
   building-level service state. The PM-level state (`pm_etat`) is essentially
   uniform in this snapshot so it carries no signal; the actual rollout
   variation lives at the building level.
@@ -37,17 +37,17 @@ A weighted sum of three sub-indicators, each in [0, 1] and oriented so higher = 
 | Sub-indicator  | Definition                                                  | Default weight |
 | -------------- | ----------------------------------------------------------- | -------------- |
 | coverage       | raw share of buildings with `imb_etat == 'deploye'`         | 0.60           |
-| pm_load        | 1 − rank-percentile of buildings-per-PM                     | 0.20           |
+| pm_load        | 1 minus rank-percentile of buildings-per-PM                 | 0.20           |
 | coll_lag       | share of *collective* buildings (≥2 dwellings) deployed     | 0.20           |
 
 **Why only three, not four.** We considered an operator-competition dimension
-(1 − HHI of `code_l331`) and a recency dimension (deployment-age based), but
-both collapsed to constants on this snapshot — Troyes is single-operator per
+(1 minus HHI of `code_l331`) and a recency dimension (deployment-age based), but
+both collapsed to constants on this snapshot. Troyes is single-operator per
 RIP zone (HHI = 1 everywhere) and `date_completude` is uniformly null. Adding
 zero-variance dimensions to the composite would dilute the meaningful signal
 without adding information.
 
-`coverage` uses the raw 0–1 value (no min-max), so a commune with 80% coverage
+`coverage` uses the raw 0 to 1 value (no min-max), so a commune with 80% coverage
 gets 0.8 even if it's the worst in the metropolis. `pm_load` is rank-pct'd
 because the raw `buildings_per_pm` distribution is heavy-tailed and partly a
 ruralness proxy.

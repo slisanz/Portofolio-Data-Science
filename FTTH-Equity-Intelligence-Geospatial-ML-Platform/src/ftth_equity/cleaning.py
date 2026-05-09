@@ -54,7 +54,7 @@ def add_target(df: pd.DataFrame) -> pd.DataFrame:
     """Binary target: building-level deployment is not yet 'deploye'.
 
     The project initially used `pm_etat` for this, but in the Troyes snapshot
-    `pm_etat` is essentially a constant — only 8 / 57072 PMs are not deployed.
+    `pm_etat` is essentially a constant; only 8 of 57072 PMs are not deployed.
     The variance in the data sits at the *building* level (`imb_etat`), where
     around 5.6% of addresses are still in states like 'cible', 'signe',
     'en cours de deploiement', 'raccordable demande' or 'abandonne'.

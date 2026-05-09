@@ -84,7 +84,7 @@ def build_feature_table(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def numeric_feature_columns() -> list[str]:
-    """Features safe to feed the lag classifier — no aggregate of the target."""
+    """Features safe to feed the lag classifier (no aggregate of the target)."""
     return [
         "has_building_label",
         "has_postcode",
