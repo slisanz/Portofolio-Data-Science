@@ -58,90 +58,6 @@ The interesting part is not the modelling, it's everything around it.
 
 `data/raw/e-3.csv` contains ~57k buildings with WGS84 coordinates, building category, deployment state, PM reference, and operator code. Source: [data.europa.eu, Arcep observatory, dataset 66cc7372](https://data.europa.eu/data/datasets/66cc737273555682b1e9b051?locale=en). Variable dictionary in `dictionnaire-des-variables.pdf` next to it.
 
-## Layout
-
-```
-notebooks/   numbered analysis notebooks, run in order
-src/         reusable code (cleaning, geo, features, equity, models, viz)
-app/         local Streamlit dashboard (5 pages, dark navy theme)
-tests/       pytest suite covering src/
-reports/     narrative writeup + exported figures
-```
-
-Notebooks write parquet/joblib artefacts to `data/interim/`, `data/processed/`, `models/`. The Streamlit app reads from those locations and degrades gracefully if any are missing; each page tells you which notebook produces it.
-
-## How to run
-
-### Setup
-
-```powershell
-# Python 3.11 required (h3 v3 and lightgbm have wheels for 3.11, not 3.14)
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-### Tests
-
-```powershell
-python -m pytest -q
-```
-Should report `22 passed`.
-
-### Notebooks
-
-```powershell
-jupyter lab
-```
-
-In JupyterLab, run notebooks in this order. For each: **Kernel → Restart Kernel and Run All Cells**.
-
-| # | Notebook | Output |
-|---|----------|--------|
-| 02 | `02_cleaning_and_geocoding.ipynb` | `data/interim/buildings_clean.parquet` |
-| 03 | `03_exploratory_analysis.ipynb` | `reports/figures/headline.json` + 2 PNG |
-| 04 | `04_geospatial_analysis.ipynb` | H3 hex stats |
-| 05 | `05_equity_index.ipynb` | `data/processed/commune_equity.parquet` |
-| 06 | `06_feature_engineering.ipynb` | `data/processed/buildings_features.parquet` |
-| 07 | `07_ml_deployment_lag.ipynb` | `models/lag_classifier.joblib` + 3 PNG |
-| 08 | `08_clustering_segments.ipynb` | `data/processed/commune_clusters.parquet` + 1 PNG |
-
-Notebook 01 (data audit) and 09 (causal sketch) are exploratory and optional.
-
-### Streamlit dashboard
-
-```powershell
-streamlit run app/streamlit_app.py
-```
-
-Five pages, ordered so the interactive ones come first: **Map Explorer** (point sample or hex aggregation, commune filter), **Deployment Predictor** (calibrated `P(lagging)` what-if), **Overview** (headline numbers + freshness), **Equity Index** (commune ranking + sub-indicator breakdown), **Methodology** (how each metric is built and what it does *not* say).
-
-The dashboard uses a custom dark theme defined in `.streamlit/config.toml`.
-
-### Re-running from scratch
-
-```powershell
-gci data\interim,data\processed,models,reports\figures -File -EA 0 | rm -Force
-python -m pytest -q
-jupyter lab
-```
-
-## Headline metrics (this snapshot)
-
-- 57,072 buildings · 81 communes · 281 PMs · 2 operators
-- Building-level lag rate: **5.65%** (range 0% to 24% per commune)
-- Classifier: CV AUC **0.74** (group-aware, generalises to unseen communes), holdout AUC **0.91** (within-commune lift), Brier **0.036**
-- Equity index range: 0.66 to 0.99 across 81 communes
-
-## Limitations
-
-- One quarterly snapshot, no panel; speed of rollout is not measurable here.
-- `date_completude` is 100% null in this file, so no temporal recency analysis.
-- Single-operator-per-RIP-zone limits operator-competition analysis to whole-metropolis HHI (≈ 0.54), not per-commune.
-- No socioeconomic overlay yet. Joining INSEE filosofi income deciles per IRIS would turn the equity index from *infrastructural* to *outcome*-oriented.
-- The causal notebook (09) is observational; do not interpret the uplift estimates as policy-grade.
-
 ## Problem to insight
 
 Read this section if you only have two minutes. It is the short version of what
@@ -262,6 +178,90 @@ flowchart LR
 - **A researcher** gets a reference template for taking a national open-data
   drop, deciding where the variance actually lives, and shipping something
   useful from a single quarterly snapshot without overclaiming.
+
+## Layout
+
+```
+notebooks/   numbered analysis notebooks, run in order
+src/         reusable code (cleaning, geo, features, equity, models, viz)
+app/         local Streamlit dashboard (5 pages, dark navy theme)
+tests/       pytest suite covering src/
+reports/     narrative writeup + exported figures
+```
+
+Notebooks write parquet/joblib artefacts to `data/interim/`, `data/processed/`, `models/`. The Streamlit app reads from those locations and degrades gracefully if any are missing; each page tells you which notebook produces it.
+
+## How to run
+
+### Setup
+
+```powershell
+# Python 3.11 required (h3 v3 and lightgbm have wheels for 3.11, not 3.14)
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### Tests
+
+```powershell
+python -m pytest -q
+```
+Should report `22 passed`.
+
+### Notebooks
+
+```powershell
+jupyter lab
+```
+
+In JupyterLab, run notebooks in this order. For each: **Kernel → Restart Kernel and Run All Cells**.
+
+| # | Notebook | Output |
+|---|----------|--------|
+| 02 | `02_cleaning_and_geocoding.ipynb` | `data/interim/buildings_clean.parquet` |
+| 03 | `03_exploratory_analysis.ipynb` | `reports/figures/headline.json` + 2 PNG |
+| 04 | `04_geospatial_analysis.ipynb` | H3 hex stats |
+| 05 | `05_equity_index.ipynb` | `data/processed/commune_equity.parquet` |
+| 06 | `06_feature_engineering.ipynb` | `data/processed/buildings_features.parquet` |
+| 07 | `07_ml_deployment_lag.ipynb` | `models/lag_classifier.joblib` + 3 PNG |
+| 08 | `08_clustering_segments.ipynb` | `data/processed/commune_clusters.parquet` + 1 PNG |
+
+Notebook 01 (data audit) and 09 (causal sketch) are exploratory and optional.
+
+### Streamlit dashboard
+
+```powershell
+streamlit run app/streamlit_app.py
+```
+
+Five pages, ordered so the interactive ones come first: **Map Explorer** (point sample or hex aggregation, commune filter), **Deployment Predictor** (calibrated `P(lagging)` what-if), **Overview** (headline numbers + freshness), **Equity Index** (commune ranking + sub-indicator breakdown), **Methodology** (how each metric is built and what it does *not* say).
+
+The dashboard uses a custom dark theme defined in `.streamlit/config.toml`.
+
+### Re-running from scratch
+
+```powershell
+gci data\interim,data\processed,models,reports\figures -File -EA 0 | rm -Force
+python -m pytest -q
+jupyter lab
+```
+
+## Headline metrics (this snapshot)
+
+- 57,072 buildings · 81 communes · 281 PMs · 2 operators
+- Building-level lag rate: **5.65%** (range 0% to 24% per commune)
+- Classifier: CV AUC **0.74** (group-aware, generalises to unseen communes), holdout AUC **0.91** (within-commune lift), Brier **0.036**
+- Equity index range: 0.66 to 0.99 across 81 communes
+
+## Limitations
+
+- One quarterly snapshot, no panel; speed of rollout is not measurable here.
+- `date_completude` is 100% null in this file, so no temporal recency analysis.
+- Single-operator-per-RIP-zone limits operator-competition analysis to whole-metropolis HHI (≈ 0.54), not per-commune.
+- No socioeconomic overlay yet. Joining INSEE filosofi income deciles per IRIS would turn the equity index from *infrastructural* to *outcome*-oriented.
+- The causal notebook (09) is observational; do not interpret the uplift estimates as policy-grade.
 
 ## License
 
