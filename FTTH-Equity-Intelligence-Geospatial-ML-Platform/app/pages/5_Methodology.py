@@ -15,7 +15,7 @@ specifically the building-level resource for Troyes Champagne Métropole
 
 ### Cleaning
 
-- File is encoded **cp1252**, not UTF-8. Reading it as UTF-8 mangles `é`, `è`, etc.
+- File is shipped as **UTF-8** even though the variable dictionary points at cp1252. A byte-level audit settled it: ~16k valid UTF-8 multi-byte sequences vs zero matching cp1252 single-byte equivalents. Reading the file as cp1252 (the documented encoding) is what produces the `Ã©` / `Ã¨` mojibake.
 - Empty strings are converted to NA before any string operation.
 - `code_poste` is normalised to a 5-character zero-padded string.
 - Coordinates outside metropolitan-France bounds are dropped.

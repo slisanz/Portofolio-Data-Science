@@ -35,6 +35,9 @@ models/*
 # reports artifacts
 reports/figures/*
 !reports/figures/.gitkeep
+# figures referenced from the README
+!reports/figures/lagging_by_commune.png
+!reports/figures/roc_pr.png
 
 # local notes
 NOTES.md

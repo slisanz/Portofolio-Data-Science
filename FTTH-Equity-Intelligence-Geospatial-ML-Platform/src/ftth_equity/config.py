@@ -13,7 +13,9 @@ REPORTS = ROOT / "reports"
 FIGURES = REPORTS / "figures"
 
 RAW_CSV = RAW / "e-3.csv"
-RAW_ENCODING = "cp1252"
+# the data dictionary suggests cp1252, but a byte-level audit shows the file is UTF-8
+# (~16k multi-byte sequences for accented chars, zero matching cp1252 high-byte singles)
+RAW_ENCODING = "utf-8"
 
 # the raw file's x/y columns are already WGS-84 lon/lat despite the projected-sounding names
 CRS_WGS84 = "EPSG:4326"

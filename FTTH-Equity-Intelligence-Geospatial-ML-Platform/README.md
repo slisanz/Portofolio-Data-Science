@@ -1,6 +1,6 @@
 # FTTH Equity Intelligence: Geospatial ML Platform
 
-> Data cleaning pipeline (cp1252 mojibake handling, schema validation) + geospatial layer (H3 hex indexing, WGS84 / Lambert-93 auto-detection, haversine) + composite equity index (3 sub-indicators with rank-percentile normalisation, deterministic snapshot reference) + LightGBM classifier (GroupKFold CV by commune, isotonic calibration, leakage-safe feature set with unit-test guards) + KMeans + PCA commune segmentation + Streamlit dashboard (5 pages, custom theme) + pytest suite (22 tests, anti-leakage guards) + CI workflow.
+> Data cleaning pipeline (byte-level encoding audit, schema validation) + geospatial layer (H3 hex indexing, WGS84 / Lambert-93 auto-detection, haversine) + composite equity index (3 sub-indicators with rank-percentile normalisation, deterministic snapshot reference) + LightGBM classifier (GroupKFold CV by commune, isotonic calibration, leakage-safe feature set with unit-test guards) + KMeans + PCA commune segmentation + Streamlit dashboard (5 pages, custom theme) + pytest suite (22 tests, anti-leakage guards) + CI workflow.
 
 <a href="https://portofolio-data-science-ftth-equity-intelligence-geospatial.streamlit.app/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Live Demo"></a>
 
@@ -40,7 +40,7 @@ For this project the relevant unit of analysis is the **building** (`imb_id`), w
 
 The interesting part is not the modelling, it's everything around it.
 
-**Data forensics.** The Arcep CSV is encoded in cp1252, mixes float-typed postcodes with NA strings, and has columns named `x`/`y` that look projected but are actually already in WGS84. The cleaning module handles all of that explicitly, with the encoding pinned and the CRS detected from value ranges. There is a dedicated test for each behaviour.
+**Data forensics.** The Arcep CSV is shipped as UTF-8 even though the dataset's variable dictionary points the reader at cp1252; a byte-level audit settled the question (~16k valid UTF-8 multi-byte sequences for the accented commune names, zero matching cp1252 single-byte equivalents), so the loader pins UTF-8 and the dictionary is treated as a hint, not an oracle. The same file mixes float-typed postcodes with NA strings, and has columns named `x`/`y` that look projected but are actually already in WGS-84. The cleaning module handles all of that explicitly, with the encoding pinned and the CRS detected from value ranges. There is a dedicated test for each behaviour.
 
 **Pivoting the target on evidence.** The first version of the project defined `is_lagging` on `pm_etat`. After running the EDA we saw that 99.99% of PMs in this snapshot are already deployed; the variance lives at the *building* state (`imb_etat`), where 5.65% of buildings are still in non-deployed states with strong spatial heterogeneity (some communes 0%, others 24%). The target was repointed and the rest of the pipeline updated to match. That kind of decision is exactly what gets discussed at code-review time, and it is documented in-line in the notebooks.
 
@@ -162,9 +162,11 @@ hides two questions that matter at the metropolitan level:
    the last-mile work that actually unlocks subscriptions?
 
 Both questions are uncomfortable to answer in aggregate because the data is
-messy (cp1252 mojibake, ambiguous CRS, mostly-null completion dates) and the
-target itself is not obvious: the PM-level state is essentially uniform in
-this snapshot, so the real variance lives at the building level.
+messy (the variable dictionary disagrees with the actual file encoding;
+columns named like Lambert-93 hold WGS-84 values; `date_completude` is
+uniformly null) and the target itself is not obvious: the PM-level state is
+essentially uniform in this snapshot, so the real variance lives at the
+building level.
 
 ### Problem statement
 
@@ -177,10 +179,26 @@ this snapshot, so the real variance lives at the building level.
 
 ### How the project tackles it
 
-1. **Build a clean, honest dataset.** A typed cleaning pipeline pins the
-   `cp1252` encoding, validates the schema with pandera, and detects the CRS
-   from value range so downstream code does not silently see mojibake or
-   read projected coordinates as WGS-84.
+```mermaid
+flowchart LR
+    A[Arcep CSV<br/>UTF-8, 57k rows]
+    B[Cleaning<br/>encoding, schema, CRS]
+    C[Geo and Features<br/>H3, anti-leakage set]
+    D[Equity Index<br/>3 sub-indicators]
+    E[LightGBM<br/>GroupKFold, isotonic]
+    F[Streamlit Dashboard<br/>5 pages, live demo]
+    A --> B --> C
+    C --> D
+    C --> E
+    D --> F
+    E --> F
+```
+
+1. **Build a clean, honest dataset.** A typed cleaning pipeline runs a
+   byte-level encoding audit (UTF-8, despite what the data dictionary
+   says), validates the schema with pandera, and detects the CRS from value
+   range so downstream code does not silently see mojibake or read projected
+   coordinates as WGS-84.
 2. **Pivot the target to where the variance lives.** EDA showed that 99.99%
    of PMs in this snapshot are already deployed; the lag signal sits at the
    *building* state. The target was repointed to `imb_etat != 'deploye'` and
@@ -208,11 +226,16 @@ this snapshot, so the real variance lives at the building level.
 - **The metro is not flat.** Across 81 communes, the building-level lag rate
   ranges from 0% to 24%; the headline 5.65% average hides communes where
   every fourth address is still not connected.
+
+  ![Top 15 communes by lag rate](reports/figures/lagging_by_commune.png)
+
 - **Most predictive power is local, not generalisable.** Random-holdout AUC
   sits at 0.91, but the group-aware CV AUC (folds split by commune) is 0.74.
   That gap of 17 points is the part of the model that does not transfer to a
   commune it has never seen; it is honest evidence that latent commune-level
   factors (operator, terrain, planning order) drive much of the signal.
+
+  ![ROC and PR on holdout](reports/figures/roc_pr.png)
 - **Calibration is reliable.** Brier 0.036, isotonic-calibrated. A predicted
   P(lagging) of 0.30 means roughly 30% of similar buildings actually lag, so
   the score is usable as a triage probability rather than a black-box rank.
