@@ -21,10 +21,16 @@ data/external/*
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !data/external/.gitkeep
+# pre-computed artifacts shipped for the Streamlit Cloud demo
+!data/interim/buildings_clean.parquet
+!data/processed/buildings_features.parquet
+!data/processed/commune_equity.parquet
+!data/processed/commune_clusters.parquet
 
 # models
 models/*
 !models/.gitkeep
+!models/lag_classifier.joblib
 
 # reports artifacts
 reports/figures/*
