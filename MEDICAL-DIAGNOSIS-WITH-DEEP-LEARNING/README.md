@@ -1,8 +1,6 @@
 # Pneumonia Detection from Chest X-Ray with Deep Learning
 
-Pediatric chest X-ray pneumonia screening: DenseNet121 transfer learning + recall-tuned threshold + Grad-CAM + Streamlit dashboard.
-
-Pediatric chest X-ray classifier (NORMAL vs PNEUMONIA) trained on the Kermany 2018 dataset. DenseNet121 transfer learning with two-stage fine-tuning beats a from-scratch CNN baseline by a wide margin (test AUC 0.909 vs 0.585). The pipeline covers EDA, a tf.data preprocessor with augmentation, a stratified val resplit, class-weighted loss, a recall-first decision threshold for screening, Grad-CAM explanations, and a Streamlit dashboard.
+Pediatric chest X-ray pneumonia screening: EDA + tf.data pipeline (resize, grayscale-to-RGB, augmentation) + stratified val resplit + 2 CNN architectures (custom baseline, DenseNet121 transfer learning with 2-stage fine-tuning) + class-weighted loss + recall-tuned decision threshold + Grad-CAM explainability + Streamlit dashboard (4 pages).
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
